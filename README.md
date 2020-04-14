@@ -19,3 +19,10 @@ devtools::install_github('ttdtrang/data-rnaseq-sarcoma')
 data(sarcoma.rnaseq.gene, package='data.rnaseq.sarcoma')
 dim(sarcoma.rnaseq.gene@assayData$exprs)
 ```
+
+## Steps to re-produce data curation
+
+1. `cd data-raw`
+2. Download all necessary raw data files.
+3. Set the environment variable `DBDIR` to point to the path containing said files
+4. Run the R notebook `make-data-package.Rmd` to assemble parts into `ExpressionSet` objects.
