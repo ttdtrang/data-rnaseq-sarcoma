@@ -8,21 +8,47 @@
     * Lesluyes T et al., Genomic and transcriptomic comparison of post-radiation versus sporadic sarcomas., Mod Pathol, 2019 Dec;32(12):1786-1794
   * Processing:
     * Sequencing reads were downloaded from SRA, at [PRJNA282597](https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA282597)
-    * Quantification was done by Kallisto 0.45.0, using a kallisto index built from Human genome GRCh38.99 and 92 ERCC sequences
+    * Quantification was done by 2 alternative workflows:
+      1. Using Kallisto 0.45.0 with an index built from Human genome GRCh38.99 and 92 ERCC sequences
+      2. Using STAR 2.7.1a to align against the Gencode human genome v27, GRCh38.p10 and 92 ERCC sequences, and RSEM to estimate abundance levels for genes/isoforms.
   
 ## Usage
 
-Install the package, import the library and load the data set
+Install the package, import the library and load the `ExpressionSet` of interest, for example
 
 ```R
 devtools::install_github('ttdtrang/data-rnaseq-sarcoma')
 data(sarcoma.rnaseq.gene, package='data.rnaseq.sarcoma')
-dim(sarcoma.rnaseq.gene@assayData$exprs)
+dim(sarcoma.rnaseq.gene.kallisto@assayData$exprs)
+```
+
+The package includes 4 data sets.
+```
+sarcoma.rnaseq.gene.kallisto
+sarcoma.rnaseq.transcript.kallisto
+sarcoma.rnaseq.gene.star_rsem
+sarcoma.rnaseq.transcript.star_rsem
 ```
 
 ## Steps to re-produce data curation
 
 1. `cd data-raw`
 2. Download all necessary raw data files.
-3. Set the environment variable `DBDIR` to point to the path containing said files
+3. Set the environment variable `DBDIR` to point to the path containing said files. It is assumed that files are organized into directories corresponding to workflow, e.g.
+```
+├── kallisto
+│   ├── feature_attributes.tsv
+│   ├── matrix.est_counts.RDS
+│   ├── matrix.gene.est_counts.RDS
+│   ├── matrix.gene.tpm.RDS
+│   └── matrix.tpm.RDS
+├── PRJNA282597_metadata_cleaned.tsv
+└── star-rsem
+    ├── feature_attrs.rsem.transcripts.tsv
+    ├── matrix.gene.expected_count.RDS
+    ├── matrix.gene.tpm.RDS
+    ├── matrix.transcripts.expected_count.RDS
+    ├── matrix.transcripts.tpm.RDS
+    └── starLog.final.tsv
+```
 4. Run the R notebook `make-data-package.Rmd` to assemble parts into `ExpressionSet` objects.
