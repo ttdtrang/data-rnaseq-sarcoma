@@ -1,0 +1,42 @@
+---
+title: "Parsing metadata from SOFT-formatted file (GEO)"
+author: "Trang Tran"
+date: "January 28, 2020"
+output: html_notebook
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+library(magrittr)
+library(ggplot2)
+# Sys.setenv('DBDIR' = 'path/to/data/dir')
+Sys.setenv('DBDIR' = './')
+options(stringsAsFactors = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
+softfile = file.path(Sys.getenv('DBDIR'), 'GSE71120_family.soft')
+source('../R/utils.R')
+```
+
+## Metadata for samples
+
+```{r}
+metadata = read.soft2dataframe(softfile, entryType = 'SAMPLE', idColumnName = 'SampleId')
+
+sample.meta = metadata$Sample_characteristics_ch1 %>%
+    lapply(function(x) {
+        stringr::str_split(x, '\t') %>%
+            sapply(function(y) { extract.keyvalue(y, separator = ': ') })
+    }) %>%
+    do.call(rbind, .) %>%
+    data.frame() %>%
+    cbind(metadata[,c('Sample_source_name_ch1', 'SampleId', 'Sample_title')]) %>%
+    set_names(c('Metastasis', 'Time', 'PairedMicroarray', 'PairedMaterialSupport', 'MaterialSupport', 'FFPEQuality', 'CINSARC', 'SampleSourceName', 'SampleId', 'SampleName')) # standardize column names
+```
+
+## Write (sequencing run) metadata files
+
+```{r,eval=FALSE}
+saveRDS(sample.meta, file = 'samples_metadata_geo.RDS')
+```
+
+
+
