@@ -14,37 +14,52 @@ options(stringsAsFactors = FALSE)
 knitr::opts_chunk$set(echo = TRUE)
 softfile1 = file.path(Sys.getenv('DBDIR'), 'GSE71119_family.soft')
 softfile2 = file.path(Sys.getenv('DBDIR'), 'GSE71120_family.soft')
+softfile3 = file.path(Sys.getenv('DBDIR'), 'GSE71121_family.soft')
 source('../R/utils.R')
 ```
+
+The series GSE71119 is linked to bioproject PRJNA282597, yet there are discordant number of samples on GEO and SRA: 136 samples on GEO and 149 samples on SRA.
+To maximize the amount of metadata on each sample, we can either combine sample metadata from the individual series, or use that of the superseries. Combination of two series GSE71119 and GSE71120 turned out to be insufficient, leaving some samples in the SRA list un-annotated, hence the use of metadata from superseries GSE71121, as below.
 
 ## Metadata for samples
 
 ```{r}
-meta1 = read.soft2dataframe(softfile1, entryType = 'SAMPLE', idColumnName = 'SampleId')
-meta2 = read.soft2dataframe(softfile2, entryType = 'SAMPLE', idColumnName = 'SampleId')
+# meta1 = read.soft2dataframe(softfile1, entryType = 'SAMPLE', idColumnName = 'SampleId')
+# meta2 = read.soft2dataframe(softfile2, entryType = 'SAMPLE', idColumnName = 'SampleId')
+meta3 = read.soft2dataframe(softfile3, entryType = 'SAMPLE', idColumnName = 'SampleId')
+# union(meta1$SampleId, meta2$SampleId) %>% union(meta3$SampleId) %>% length()
 
-union(meta1$SampleId, meta2$SampleId)
+# sample.meta1 = meta1$Sample_characteristics_ch1 %>%
+#     lapply(function(x) {
+#         stringr::str_split(x, '\t') %>%
+#             sapply(function(y) { extract.keyvalue(y, separator = ': ') })
+#     }) %>%
+#     do.call(rbind, .) %>%
+#     data.frame() %>%
+#     cbind(meta1[,c('Sample_source_name_ch1', 'SampleId', 'Sample_title')])
+# 
+# sample.meta2 = meta2$Sample_characteristics_ch1 %>%
+#     lapply(function(x) {
+#         stringr::str_split(x, '\t') %>%
+#             sapply(function(y) { extract.keyvalue(y, separator = ': ') })
+#     }) %>%
+#     do.call(rbind, .) %>%
+#     data.frame() %>%
+#     cbind(meta2[,c('Sample_source_name_ch1', 'SampleId', 'Sample_title')])
+# 
+# sample.meta = rbind(sample.meta1, sample.meta2) %>%
+#     set_names(c('Metastasis', 'Time', 'PairedMicroarray', 'PairedMaterialSupport', 'MaterialSupport', 'FFPEQuality', 'CINSARC', 'SampleSourceName', 'SampleId', 'SampleName')) # standardize column names
 
-sample.meta1 = meta1$Sample_characteristics_ch1 %>%
+sample.meta = meta3$Sample_characteristics_ch1 %>%
     lapply(function(x) {
         stringr::str_split(x, '\t') %>%
             sapply(function(y) { extract.keyvalue(y, separator = ': ') })
     }) %>%
     do.call(rbind, .) %>%
     data.frame() %>%
-    cbind(meta1[,c('Sample_source_name_ch1', 'SampleId', 'Sample_title')])
+    cbind(meta3[,c('Sample_source_name_ch1', 'SampleId', 'Sample_title')]) %>%
+    set_names(c('Metastasis', 'Time', 'PairedMicroarray', 'PairedMaterialSupport', 'MaterialSupport', 'FFPEQuality', 'CINSARC', 'SampleSourceName', 'SampleId', 'SampleName')) 
 
-sample.meta2 = meta2$Sample_characteristics_ch1 %>%
-    lapply(function(x) {
-        stringr::str_split(x, '\t') %>%
-            sapply(function(y) { extract.keyvalue(y, separator = ': ') })
-    }) %>%
-    do.call(rbind, .) %>%
-    data.frame() %>%
-    cbind(meta2[,c('Sample_source_name_ch1', 'SampleId', 'Sample_title')])
-
-sample.meta = rbind(sample.meta1, sample.meta2) %>%
-    set_names(c('Metastasis', 'Time', 'PairedMicroarray', 'PairedMaterialSupport', 'MaterialSupport', 'FFPEQuality', 'CINSARC', 'SampleSourceName', 'SampleId', 'SampleName')) # standardize column names
 ```
 
 ```{r}

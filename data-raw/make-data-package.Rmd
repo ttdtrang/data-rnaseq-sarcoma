@@ -20,6 +20,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 Sys.setenv('DBDIR' = '.')
+file.metadata_geo = 'samples_metadata_geo.RDS'
+file.metadata_sra = 'PRJNA282597_metadata_cleaned.tsv'
 ```
 
 ## Experiment description - same for all processing workflows
@@ -58,14 +60,31 @@ ExpressionSet(assayData = gene.assayData)
 
 #### Phenotypic data
 
+Combine metadata from SRA and GEO. Note that GEO metadata includes extra samples, but there are still samples without GEO metadata record.
+
 ```{r}
-metadata = read.table(file.path(Sys.getenv('DBDIR'),
-                                'PRJNA282597_metadata_cleaned.tsv'), sep = '\t', header = TRUE)
+metadata1 = read.table(file.path(Sys.getenv('DBDIR'), file.metadata_sra), sep = '\t', header = TRUE)
+metadata2 = readRDS(file.path(Sys.getenv('DBDIR'), file.metadata_geo))
+metadata = plyr::join(x = metadata1, y = metadata2, by = 'SampleName', type = 'left')
 libnames <- colnames(gene.assayData$exprs) %>% as.character()
 phenoData <- data.frame('RunId' = libnames) %>%
     plyr::join(y = metadata, by = 'RunId', type = 'left')  %>%
     set_rownames(libnames) %>%
     Biobase::AnnotatedDataFrame(data = ., varMetadata = data.frame('labelDescription' = colnames(.), row.names = colnames(.)))   
+```
+
+Samples without corresponding GEO record
+
+```{r}
+metadata[which(is.na(metadata$SampleId)),]
+```
+
+
+Make sure that sample (column) ordering is preserved after joining.
+
+```{r}
+all(colnames(gene.assayData$exprs) == rownames(phenoData@data$RunId))
+all(colnames(gene.assayData$exprs) == rownames(phenoData@data))
 ```
 
 #### Experiment description
@@ -178,11 +197,10 @@ gene.featureData = gene.featureData %>%
 
 #### Phenotypic data
 
-Biosample metadata
+Biosample metadata, compiled from both SRA and GEO entry as above.
 
 ```{r}
-metadata = read.table(file.path(Sys.getenv('DBDIR'),
-                                'PRJNA282597_metadata_cleaned.tsv'), sep = '\t', header = TRUE)
+str(metadata)
 ```
 
 Re-processing stats
