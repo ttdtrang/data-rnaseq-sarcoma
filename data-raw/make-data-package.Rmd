@@ -22,6 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Sys.setenv('DBDIR' = '.')
 file.metadata_geo = 'samples_metadata_geo.RDS'
 file.metadata_sra = 'PRJNA282597_metadata_cleaned.tsv'
+file.metadata_fastq = 'fastq_metadata.tsv'
 ```
 
 ## Experiment description - same for all processing workflows
@@ -64,8 +65,10 @@ Combine metadata from SRA and GEO. Note that GEO metadata includes extra samples
 
 ```{r}
 metadata1 = read.table(file.path(Sys.getenv('DBDIR'), file.metadata_sra), sep = '\t', header = TRUE)
-metadata2 = readRDS(file.path(Sys.getenv('DBDIR'), file.metadata_geo))
-metadata = plyr::join(x = metadata1, y = metadata2, by = 'SampleName', type = 'left')
+metadata2 = read.table(file.path(Sys.getenv('DBDIR'), file.metadata_fastq), sep = '\t', header = TRUE)
+metadata3 = readRDS(file.path(Sys.getenv('DBDIR'), file.metadata_geo))
+metadata = plyr::join(x = metadata1, y = metadata2, by = 'RunId', type='left') %>%
+    plyr::join(y = metadata3, by = 'SampleName', type = 'left')
 libnames <- colnames(gene.assayData$exprs) %>% as.character()
 phenoData <- data.frame('RunId' = libnames) %>%
     plyr::join(y = metadata, by = 'RunId', type = 'left')  %>%
