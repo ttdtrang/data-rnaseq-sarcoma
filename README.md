@@ -11,7 +11,7 @@
     * Quantification was done by 2 alternative workflows:
       1. Using Kallisto 0.45.0 with an index built from Human genome GRCh38.99 and 92 ERCC sequences
       2. Using STAR 2.7.1a to align against the Gencode human genome v27, GRCh38.p10 and 92 ERCC sequences, and RSEM to estimate abundance levels for genes/isoforms.
-  * Metadata: compiled from SRA, [GEO](https://ftp.ncbi.nlm.nih.gov/geo/series/GSE71nnn/GSE71120/soft/GSE71120_family.soft.gz), plus extracted information from the sequence identifiers in fastq files.
+  * Metadata: compiled from SRA, [GEO soft-formatted file](https://ftp.ncbi.nlm.nih.gov/geo/series/GSE71nnn/GSE71120/soft/GSE71120_family.soft.gz), plus extracted information from the sequence identifiers in fastq files.
   
 ## Usage
 
